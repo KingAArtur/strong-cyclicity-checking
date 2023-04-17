@@ -1,0 +1,147 @@
+\section{Приложение А \\ Исходные коды функций}
+
+Функция для построения продолжения многочлена
+prolong := proc(q, c, need_indexes, i, j)
+    local t, p, cc;
+    p := q;
+    
+    if type(p, '`+`') or type(p, polynom) then
+        if has(p, O) then
+            t := degree(op(select(has, p, O)), x);
+            p := remove(has, p, O);
+        else
+            if p = 0 then
+                t := 0
+            else
+                t := degree(p, x) + 1
+            end if;
+        end if;
+    else
+        t := degree(op(p), x);
+        p := 0;
+    end if;
+    
+    if _npassed <= 2 then
+        cc := c
+    else
+        if _npassed >= 5 then
+            cc := c[i, j, t]
+        else
+            cc := c[t]
+        end if;
+    end if;
+    
+    
+    p := p + cc * x^t;
+    return p;
+    end proc:
+
+Функция для построения матрицы производных в силу системы
+CV_dv := proc(A, v, m)
+    local n, i, j, k, W, AT, width;
+    
+    n := RowDimension(A);
+    if _npassed > 2 then
+        width := m
+    else
+        width := n
+    end if;
+    
+    AT := Transpose(A);
+    W := Matrix(n, width);
+    for i from 1 to n do
+        W[i, 1] := v[i]
+    end do;
+    
+    for j from 2 to width do
+        for i from 1 to n do
+            W[i, j] := simplify(diff(W[i, j - 1], x) + add(AT[i, k] * W[k, j - 1], k = 1 .. n))
+        end do
+    end do;
+    
+    return(W);
+    end proc:
+
+Процедура, реализующая алгоритм проверки сильной цикличности вектора
+is_strong_cyclic := proc(A, v, step, allowed_elements)
+    local n, B, CV, det, i, j, k, c, eq, sol, solutions, failed, nstep, allowed;
+    
+    n := RowDimension(A);
+    if _npassed = 2 then
+        nstep := MAX_RECURSION_DEPTH
+    else
+        nstep := step
+    end if;
+    
+    # print(nstep);
+    if nstep = 0 then
+        return FAIL
+    end if;
+    
+    if _npassed <= 3 then
+        allowed := {}
+    else
+        allowed := allowed_elements
+    end if;
+    
+    solutions := [];
+    for i from 1 to n do
+        for j from 1 to n do
+            if evalb(allowed = {}) or evalb([i, j] in allowed) then
+                B := Copy(A);
+                prolong_matrix_one(B, c, i, j);
+                CV := CV_dv(B, v);
+                det := sort(collect(Determinant(CV), x), [x]);
+                
+                eq := tcoeff(det, x) = 0;
+                sol := [solve(eq, c)];
+                #if degree(tcoeff(det, x), c) > 1 then
+                    #print(tcoeff(det, x))
+                #end if;
+                
+                for k from 1 to numelems(sol) do
+                
+                    if sol[k] <> 0 then
+                        if eval(det, c=sol[k]) = 0 then
+                            # prolongation was found!
+                            B := Copy(A);
+                            prolong_matrix_one(B, sol[k], i, j);
+                            
+                            print(B);
+                            return false;
+                        end if;
+                        solutions := [op(solutions), [i, j, sol[k]]];
+                    end if;
+                end do;
+            end if;
+        end do;
+    end do;
+    
+    
+    failed := false;
+    for k from 1 to numelems(solutions) do
+        B := Copy(A);
+        #print(step, solutions[k]);
+        i, j, sol := solutions[k, 1], solutions[k, 2], solutions[k, 3];
+        prolong_matrix_one(B, sol, i, j);
+        
+        if false then
+        #if degree(B[i, j], x) > MAX_DEGREE then
+            failed := true;
+        else
+            sol := is_strong_cyclic(B, v, nstep - 1, allowed);
+            if sol = false then
+                return false;
+            end if;
+            if sol = FAIL then
+                failed := true;
+            end if;
+        end if;
+    end do;
+    
+    if failed then
+        return FAIL
+    else
+        return true
+    end if;
+    end proc:
