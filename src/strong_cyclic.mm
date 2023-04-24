@@ -1,4 +1,6 @@
-MAX_DEGREE := 10:
+$include "cyclic.mm"
+$include "prolong.mm"
+
 MAX_RECURSION_DEPTH := 10:
 VERBOSE := false:
 

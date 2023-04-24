@@ -49,36 +49,3 @@ CV_companion_matrix := proc(A, v)
     end proc:
 
 
-# returns linear scalar differential n-order equation
-#   y'(n) = ... for given system z' = Az
-# and a matrix B:
-#   z = B * [y, y', ..., y'(n-1)]
-# using given cyclic vector v
-CV_to_scalar_diffur := proc(A, v)
-    local n, i, j, DV, C, sys, vars, coefs, eq, y;
-    
-    n := RowDimension(A);
-    DV := CV_dv(A, v, n + 1);
-    C := CV_companion_matrix(A, v);
-    
-    vars := [seq(a[j - 1], j = 1 .. n)];
-    sys := [seq(1, i = 1 .. n)];
-    for i from 1 to n do
-        eq := 0;
-        for j from 1 to n do
-            eq := eq + DV[i, j] * vars[j]
-        end do;
-        eq := eq - DV[i, n + 1];
-        sys[i] := eq;
-    end do;
-    
-    coefs := Linear(sys, vars);
-    
-    eq := 0;
-    eq := eq + rhs(coefs[1]) * y(x);
-    for i from 2 to n do
-        eq := eq + rhs(coefs[i]) * diff(y(x), x$(i - 1))
-    end do;
-    
-    return eq = diff(y(x), x$n), C;
-    end proc:
