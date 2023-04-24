@@ -29,16 +29,16 @@ is_strong_cyclic := proc(A :: Matrix, v :: list, step :: integer) :: boolean;
         return FAIL;
     end if;
     
-    n := RowDimension(A);
+    n := LinearAlgebra[RowDimension](A);
     
     # finding all 1-element prolongations that make tr(det) = 0
     solutions := [];
     for i from 1 to n do
         for j from 1 to n do
-            B := Copy(A);
+            B := LinearAlgebra[Copy](A);
             prolong_matrix_one(B, c, i, j);
             CV := CV_dv(B, v);
-            det := sort(collect(Determinant(CV), x), [x]);
+            det := sort(collect(LinearAlgebra[Determinant](CV), x), [x]);
             show(B);
             show(det);
             
@@ -50,7 +50,7 @@ is_strong_cyclic := proc(A :: Matrix, v :: list, step :: integer) :: boolean;
                 if sol[k] <> 0 then
                     if eval(det, c=sol[k]) = 0 then
                         # prolongation was found!
-                        B := Copy(A);
+                        B := LinearAlgebra[Copy](A);
                         prolong_matrix_one(B, sol[k], i, j);
                         
                         print(B);
@@ -66,7 +66,7 @@ is_strong_cyclic := proc(A :: Matrix, v :: list, step :: integer) :: boolean;
     # recursively applying to all collected prolongations
     failed := false;
     for k from 1 to numelems(solutions) do
-        B := Copy(A);
+        B := LinearAlgebra[Copy](A);
         i, j, sol := solutions[k, 1], solutions[k, 2], solutions[k, 3];
         prolong_matrix_one(B, sol, i, j);
         

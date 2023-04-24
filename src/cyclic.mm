@@ -1,18 +1,18 @@
-with(LinearAlgebra):
-with(SolveTools):
+# Basic functions for checking cyclicity
+
 
 # returns a matrix DV[n x m] = [v | Dv | D2v | ... | D(m-1)v], m = n by default
 CV_dv := proc(A, v, m)
     local n, i, j, k, W, AT, width;
     
-    n := RowDimension(A);
+    n := LinearAlgebra[RowDimension](A);
     if _npassed > 2 then
         width := m
     else
         width := n
     end if;
     
-    AT := Transpose(A);
+    AT := LinearAlgebra[Transpose](A);
     W := Matrix(n, width);
     for i from 1 to n do
         W[i, 1] := v[i]
@@ -32,7 +32,7 @@ CV_dv := proc(A, v, m)
 CV_is_cyclic := proc(A, v)
     local det, answer;
     
-    det := Determinant(CV_dv(A, v));
+    det := LinearAlgebra[Determinant](CV_dv(A, v));
     if det = 0 then
         answer := false
     else
@@ -45,7 +45,7 @@ CV_is_cyclic := proc(A, v)
 
 # companion matrix for system y' = Ay
 CV_companion_matrix := proc(A, v)
-    return(MatrixInverse(Transpose(CV_dv(A, v))));
+    return(LinearAlgebra[MatrixInverse](LinearAlgebra[Transpose](CV_dv(A, v))));
     end proc:
 
 
