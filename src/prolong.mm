@@ -1,5 +1,5 @@
 # returns a prolongation of a given polynom (supports O-notation, for example q(x) = x + O(x^5))
-prolong := proc(q, c, need_indexes, i, j)
+prolong_old := proc(q, c, need_indexes, i, j)
     local t, p, cc;
     p := q;
     
@@ -35,7 +35,16 @@ prolong := proc(q, c, need_indexes, i, j)
     end proc:
 
 
+# returns a prolongation of a given polynom with a given degree
+prolong := proc(q, coef, degree)
+    local p;
+    p := q + coef * x ^ degree;
+    
+    return p;
+end proc:
+
+
 # prolong one element of a given matrix
-prolong_matrix_one := proc(A, c, i, j)
-    A[i, j] := prolong(A[i, j], c);
-    end proc:
+prolong_matrix_one := proc(A, c, i, j, degree)
+    A[i, j] := prolong(A[i, j], c, degree);
+end proc:

@@ -11,10 +11,10 @@ show := proc(msg)
 end proc:
 
 
-is_strong_cyclic := proc(A :: Matrix, v :: list, step :: integer) :: boolean;
+is_strong_cyclic := proc(A :: Matrix, v :: list, degree :: integer, step :: integer) :: boolean;
     local n, B, CV, det, i, j, k, c, eq, sol, solutions, failed, nstep;
     
-    if _npassed = 2 then
+    if _npassed = 3 then
         nstep := MAX_RECURSION_DEPTH
     else
         nstep := step
@@ -36,7 +36,7 @@ is_strong_cyclic := proc(A :: Matrix, v :: list, step :: integer) :: boolean;
     for i from 1 to n do
         for j from 1 to n do
             B := LinearAlgebra[Copy](A);
-            prolong_matrix_one(B, c, i, j);
+            prolong_matrix_one(B, c, i, j, degree + 1);
             CV := CV_dv(B, v);
             det := sort(collect(LinearAlgebra[Determinant](CV), x), [x]);
             show(B);
@@ -51,7 +51,7 @@ is_strong_cyclic := proc(A :: Matrix, v :: list, step :: integer) :: boolean;
                     if eval(det, c=sol[k]) = 0 then
                         # prolongation was found!
                         B := LinearAlgebra[Copy](A);
-                        prolong_matrix_one(B, sol[k], i, j);
+                        prolong_matrix_one(B, sol[k], i, j, degree + 1);
                         
                         print(B);
                         show("not cyclic!");
@@ -68,9 +68,9 @@ is_strong_cyclic := proc(A :: Matrix, v :: list, step :: integer) :: boolean;
     for k from 1 to numelems(solutions) do
         B := LinearAlgebra[Copy](A);
         i, j, sol := solutions[k, 1], solutions[k, 2], solutions[k, 3];
-        prolong_matrix_one(B, sol, i, j);
+        prolong_matrix_one(B, sol, i, j, degree + 1);
         
-        sol := is_strong_cyclic(B, v, nstep - 1, allowed);
+        sol := is_strong_cyclic(B, v, degree + 1, nstep - 1);
         if sol = false then
             show("not cyclic!");
             return false;
