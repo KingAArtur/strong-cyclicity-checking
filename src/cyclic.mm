@@ -25,7 +25,7 @@ CV_dv := proc(A, v, m)
     end do;
     
     return(W);
-    end proc:
+end proc:
 
 
 # checks if a given vector v is cyclic for system y' = Ay
@@ -40,12 +40,10 @@ CV_is_cyclic := proc(A, v)
     end if;
     
     return(answer);
-    end proc:
+end proc:
 
 
 # companion matrix for system y' = Ay
 CV_companion_matrix := proc(A, v)
     return(LinearAlgebra[MatrixInverse](LinearAlgebra[Transpose](CV_dv(A, v))));
-    end proc:
-
-
+end proc:
