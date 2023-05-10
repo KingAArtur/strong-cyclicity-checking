@@ -1,53 +1,60 @@
 \section{Приложение А \\ Исходные коды функций}
 
-Функция для построения продолжения многочлена
-prolong := proc(q, c, need_indexes, i, j)
-    local t, p, cc;
-    p := q;
+
+Функция для определения степени выражения, которое может содержать слагаемое вида $O(x^t)$
+\begin{lstlisting}[basicstyle=\scriptsize]
+max_degree := proc(p) :: integer;
+    local result :: integer;
     
     if type(p, '`+`') or type(p, polynom) then
+        # "polynom" - polynoms with or without "+", such as "x + 3x^3" or "4x^5"
+        # "+" - polynoms with O(x^t) term, such as "2x + O(x^3)"
         if has(p, O) then
-            t := degree(op(select(has, p, O)), x);
-            p := remove(has, p, O);
+            # assuming that O(x^t) terms is max degree in the expression
+            result := degree(op(select(has, p, O)), x) - 1;
         else
             if p = 0 then
-                t := 0
+                result := -1
             else
-                t := degree(p, x) + 1
+                result := degree(p, x)
             end if;
         end if;
     else
-        t := degree(op(p), x);
-        p := 0;
+        # only O(x^t) term without any other terms, such as "O(x^4)"
+        result := degree(op(p), x) - 1;
     end if;
     
-    if _npassed <= 2 then
-        cc := c
-    else
-        if _npassed >= 5 then
-            cc := c[i, j, t]
-        else
-            cc := c[t]
-        end if;
-    end if;
-    
-    
-    p := p + cc * x^t;
-    return p;
-    end proc:
+    return result;
+end proc:
+\end{lstlisting}
 
-Функция для построения матрицы производных в силу системы
+
+\bigskip
+Функция для построения продолжения многочлена
+\begin{lstlisting}[basicstyle=\scriptsize]
+prolong := proc(p :: polynom, coef, degree :: integer) :: polynom;
+    local q;
+    q := p + coef * x ^ degree;
+    
+    return q;
+end proc:
+\end{lstlisting}
+
+
+\newpage
+Функция для построения матрицы производных вектора в силу системы
+\begin{lstlisting}[basicstyle=\scriptsize]
 CV_dv := proc(A, v, m)
     local n, i, j, k, W, AT, width;
     
-    n := RowDimension(A);
+    n := LinearAlgebra[RowDimension](A);
     if _npassed > 2 then
         width := m
     else
         width := n
     end if;
     
-    AT := Transpose(A);
+    AT := LinearAlgebra[Transpose](A);
     W := Matrix(n, width);
     for i from 1 to n do
         W[i, 1] := v[i]
@@ -60,88 +67,127 @@ CV_dv := proc(A, v, m)
     end do;
     
     return(W);
-    end proc:
+end proc:
+\end{lstlisting}
 
-Процедура, реализующая алгоритм проверки сильной цикличности вектора
-is_strong_cyclic := proc(A, v, step, allowed_elements)
-    local n, B, CV, det, i, j, k, c, eq, sol, solutions, failed, nstep, allowed;
+
+\bigskip
+Процедура, запускающая алгоритм проверки сильной цикличности вектора
+\begin{lstlisting}[basicstyle=\scriptsize]
+is_strong_cyclic := proc(A :: Matrix, v :: list, max_recursion_depth :: integer) :: boolean;
+    local actual_max_recursion_depth, n, degree_matrix, A_copied, i, j;
     
-    n := RowDimension(A);
-    if _npassed = 2 then
-        nstep := MAX_RECURSION_DEPTH
+    if _npassed <= 2 then
+        actual_max_recursion_depth := MAX_RECURSION_DEPTH
     else
-        nstep := step
+        actual_max_recursion_depth := max_recursion_depth
     end if;
     
-    # print(nstep);
-    if nstep = 0 then
-        return FAIL
-    end if;
+    show("=====");
+    show("Starting calculations...");
+    show("max_recursion_depth" = actual_max_recursion_depth);
+    show("=====");
     
-    if _npassed <= 3 then
-        allowed := {}
-    else
-        allowed := allowed_elements
-    end if;
+    n := LinearAlgebra[RowDimension](A);
     
-    solutions := [];
+    # calculating degrees for each element and removing O-notation
+    degree_matrix := Matrix(n);
+    A_copied := LinearAlgebra[Copy](A);
     for i from 1 to n do
         for j from 1 to n do
-            if evalb(allowed = {}) or evalb([i, j] in allowed) then
-                B := Copy(A);
-                prolong_matrix_one(B, c, i, j);
-                CV := CV_dv(B, v);
-                det := sort(collect(Determinant(CV), x), [x]);
-                
-                eq := tcoeff(det, x) = 0;
-                sol := [solve(eq, c)];
-                #if degree(tcoeff(det, x), c) > 1 then
-                    #print(tcoeff(det, x))
-                #end if;
-                
-                for k from 1 to numelems(sol) do
-                
-                    if sol[k] <> 0 then
-                        if eval(det, c=sol[k]) = 0 then
-                            # prolongation was found!
-                            B := Copy(A);
-                            prolong_matrix_one(B, sol[k], i, j);
-                            
-                            print(B);
-                            return false;
-                        end if;
-                        solutions := [op(solutions), [i, j, sol[k]]];
-                    end if;
-                end do;
-            end if;
+            degree_matrix[i, j] := max_degree(A_copied[i, j]);
+            A_copied[i, j] := remove_o_notation(A_copied[i, j]);
         end do;
     end do;
     
+    # clearing result matrix
+    RESULT_MATRIX := Matrix():
     
+    # calling recursive procedure
+    return is_strong_cyclic_process(A_copied, v, actual_max_recursion_depth, degree_matrix);
+end proc:
+\end{lstlisting}
+
+
+Рекурсивная часть алгоритма проверки сильной цикличности вектора
+\begin{lstlisting}[basicstyle=\scriptsize]
+is_strong_cyclic_process := proc(A :: Matrix, v :: list, steps_left :: integer, degree_matrix :: Matrix) :: boolean;
+    local n, A_copied, degree_matrix_copied, CV, det, i, j, k, c, root, roots, solutions, failed, result;
+
+    show("=====");
+    show("depth" = steps_left);
+    show(A);
+    
+    if steps_left = 0 then
+        show(FAIL);
+        return FAIL;
+    end if;
+    
+    n := LinearAlgebra[RowDimension](A);
+    A_copied := LinearAlgebra[Copy](A);
+    degree_matrix_copied := LinearAlgebra[Copy](degree_matrix);
+    
+    # finding all 1-element prolongations that make tr(det) = 0
+    solutions := [];
+    for i from 1 to n do
+        for j from 1 to n do
+            A_copied[i, j] := A_copied[i, j] + c * x ^ (degree_matrix_copied[i, j] + 1);
+            CV := CV_dv(A_copied, v);
+            det := sort(collect(LinearAlgebra[Determinant](CV), x), [x]);
+            
+            roots := find_roots(tcoeff(det, x), c);
+            show(A_copied);
+            show(det);
+            show(roots);
+            
+            # checking all found roots and appending them to the list
+            for k from 1 to numelems(roots) do
+                if roots[k] <> 0 then
+                    if eval(det, c=roots[k]) = 0 then
+                        # prolongation was found! => not strong cyclic
+                        A_copied[i, j] := A[i, j] + roots[k] * x ^ (degree_matrix_copied[i, j] + 1);
+                        
+                        RESULT_MATRIX := A_copied;
+                        show("not cyclic!");
+                        return false;
+                    end if;
+                    solutions := [op(solutions), [i, j, roots[k]]];
+                end if;
+            end do;
+            
+            # discarding changes for this element
+            A_copied[i, j] := A[i, j];
+        end do;
+    end do;
+    
+    # recursively applying to all collected prolongations
     failed := false;
     for k from 1 to numelems(solutions) do
-        B := Copy(A);
-        #print(step, solutions[k]);
-        i, j, sol := solutions[k, 1], solutions[k, 2], solutions[k, 3];
-        prolong_matrix_one(B, sol, i, j);
+        i, j, root := solutions[k, 1], solutions[k, 2], solutions[k, 3];
         
-        if false then
-        #if degree(B[i, j], x) > MAX_DEGREE then
+        A_copied[i, j] := A_copied[i, j] + root * x ^ (degree_matrix_copied[i, j] + 1);
+        degree_matrix_copied[i, j] := degree_matrix_copied[i, j] + 1;
+        
+        result := is_strong_cyclic_process(A_copied, v, steps_left - 1, degree_matrix_copied);
+        degree_matrix_copied[i, j] := degree_matrix[i, j];
+        A_copied[i, j] := A[i, j];
+        
+        if result = false then
+            show("not cyclic!");
+            return false;
+        end if;
+        if result = FAIL then
             failed := true;
-        else
-            sol := is_strong_cyclic(B, v, nstep - 1, allowed);
-            if sol = false then
-                return false;
-            end if;
-            if sol = FAIL then
-                failed := true;
-            end if;
         end if;
     end do;
     
     if failed then
-        return FAIL
+        show("FAIL");
+        return FAIL;
     else
-        return true
+        show("yes, strong cyclic!");
+        return true;
     end if;
-    end proc:
+end proc:
+
+\end{lstlisting}

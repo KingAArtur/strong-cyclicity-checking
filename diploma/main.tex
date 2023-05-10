@@ -12,11 +12,29 @@
 \usepackage{geometry}
 \geometry{
 	left=30mm,
-	right=10mm,
+	right=15mm,
 	top=20mm,
 	bottom=20mm,
 }
 \usepackage{indentfirst}
+\usepackage{setspace}
+\onehalfspacing
+
+\lstdefinestyle{mystyle}{
+    basicstyle=\ttfamily\scriptsize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+%\lstset{language=Python}
+\lstset{style=mystyle}
 
 \input{definitions}
 
@@ -44,13 +62,13 @@
 \newpage
 \input{разделы/основные_понятия}
 
-% ============================== Утверждения
-\newpage
-\input{разделы/утверждения}
-
 % ============================== Постановка задачи
 \newpage
 \input{разделы/постановка_задачи}
+
+% ============================== Утверждения
+\newpage
+\input{разделы/утверждения}
 
 % ============================== Описание имеющегося метода
 \newpage
@@ -66,7 +84,7 @@
 
 % ============================== Заключение
 \newpage
-%\input{разделы/заключение}
+\input{разделы/заключение}
 
 % ============================== Список литературы
 \newpage
@@ -74,6 +92,7 @@
 
 % ============================== Приложение. Исходные коды функций
 \newpage
-%\input{разделы/приложение_исходные_коды_функций_задачи}
+\input{разделы/приложение_исходные_коды_функций}
+
 
 \end{document}
