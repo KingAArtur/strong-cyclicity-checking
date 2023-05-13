@@ -1,0 +1,138 @@
+\section{Понятие циклического вектора}
+
+Пусть $K$ "--- поле характеристики нуль (например, поле рациональных чисел),
+$K[x]$ "--- кольцо \emph{многочленов} переменной~$x$,
+$K[[x]]$ "--- кольцо \emph{формальных степенных рядов} от~независимой переменной~$x$:
+\[
+	K[x] = \{a(x) = \sum\limits_{n = 0}^t a_n x^n, a_n \in K, t \in \mathbb{N}_0\}
+\]
+
+\[
+	K[[x]] = \{a(x) = \sum\limits_{n = 0}^\infty a_n x^n, a_n \in K\}.
+\]
+\medskip
+
+Будем рассматривать дифференциальные системы вида
+\begin{equation}
+	y' = Ay,
+	\label{system}
+\end{equation}
+где $A$ "--- квадратная матрица размера~$m \times m$ коэффициентов системы, имеющих вид формальных степенных рядов,
+$y$ "--- вектор неизвестных из~$m$ компонент.
+
+Пусть $v \in K[x]^m$ "--- вектор из~$m$ компонент "--- многочленов. По аналогии с~\cite{litVanDerPut}, введем оператор вида
+\begin{equation}
+    \diff: v\rightarrow v' + A^T v,
+    \label{differention}
+\end{equation}
+где $A$ "--- матрица коэффициентов системы \eqref{system}, $v'$ "--- покомпонентное дифференцирование вектора~$v$.
+Будем говорить, что этот оператор задает \emph{дифференцирование вектора~$v$ в~силу системы}~\eqref{system}.
+
+\begin{example}
+	Пусть имеются матрица $A$ и вектор $v$:
+	\begin{equation*}
+		A = 
+		\begin{pmatrix}
+			-2 & x^2 & 1 \\
+			3 & x & 2x^2 \\
+			4 & x^3 & x \\
+		\end{pmatrix},\quad
+		v =
+		\begin{pmatrix}
+			1 \\
+			x \\
+			3x + 2x^2 \\
+		\end{pmatrix}.
+	\end{equation*}
+    
+	Продифференцируем вектор $v$ в силу системы с матрицей $A$:
+	\begin{equation*}
+		\diffVector = v' + A^T v = 
+		\begin{pmatrix}
+			0 \\
+			1 \\
+			3 + 4x \\
+		\end{pmatrix}
+        +
+        \begin{pmatrix}
+			-2 & 3 & 4 \\
+			x^2 & x & x^3 \\
+			1 & 2x^2 & x \\
+		\end{pmatrix}
+        \times
+        \begin{pmatrix}
+			1 \\
+			x \\
+			3x + 2x^2 \\
+		\end{pmatrix}
+        =
+    \end{equation*}
+    
+    \begin{equation*}
+        =
+        \begin{pmatrix}
+			0 \\
+			1 \\
+			3 + 4x \\
+		\end{pmatrix}
+        +
+		\begin{pmatrix}
+			8x^2 + 15x - 2 \\
+			2x^5 + 3x^4 + 2x^2 \\
+			4x^3 + 3x^2  + 1 \\
+		\end{pmatrix} =
+		\begin{pmatrix}
+			8x^2 + 15x - 2 \\
+			2x^5 + 3x^4 + 2x^2 + 1\\
+			4x^3 + 3x^2 + 4x + 4 \\
+		\end{pmatrix}.
+	\end{equation*}
+\end{example}
+\bigskip
+
+\newpage
+\emph{Матрицей производных вектора~$v$ в силу системы} \eqref{system} назовем квадратную матрицу размера~$m \times m$,
+в которой по столбцам записаны векторы $v$, \diffVector, \diffVector[2], \dots, \diffVector[m-1]:
+
+\begin{equation}
+	\diffMatrix = [v \mid \diffVector \mid \diffVector[2] \mid \dots \mid \diffVector[m-1]]
+    \label{diffMatrix}
+\end{equation}
+
+\begin{example}
+	Пусть имеются матрица $A$ и вектор $v$:
+	\begin{equation*}
+		A = 
+		\begin{pmatrix}
+			1 & x & 3 \\
+			2x & 1 & 0 \\
+			3 & -1 & x^2 \\
+		\end{pmatrix},\quad
+		v =
+		\begin{pmatrix}
+			1 \\
+			0 \\
+			0 \\
+		\end{pmatrix}.
+	\end{equation*}
+    
+	Матрица производных вектора $v$ в силу системы выглядит следующим образом:
+	\begin{equation*}
+		\diffMatrix = [v \mid \diffVector \mid \diffVector[2]] = 
+		\begin{pmatrix}
+			1 & 1 & 2x^2 + 10 \\
+			0 & x & -2 + 2x \\
+			0 & 3 & 3x^2 + 3 \\
+		\end{pmatrix}
+	\end{equation*}
+\end{example}
+
+Вектор~$v$ называется \emph{циклическим для~системы} \eqref{system}, если векторы $v$, \diffVector, \diffVector[2], \dots, \diffVector[m-1] линейно независимы.
+С~помощью циклического вектора задачу решения системы дифференциальных уравнений можно свести к~задаче решения скалярного дифференциального уравнения.
+
+Определение циклического вектора можно записать и в~матричном виде:
+вектор~$v$ является циклическим, если и только если
+\begin{equation*}
+	\dett(\diffMatrix) \neq 0.
+%	\label{diffMatrixNotZero}
+\end{equation*}
