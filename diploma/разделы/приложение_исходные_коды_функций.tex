@@ -1,5 +1,5 @@
-\section*{Приложение А \\ Основные функции}
-\addcontentsline{toc}{section}{Приложение А. Основные функции}
+\section*{Приложение А \\ Программный код основных функций}
+\addcontentsline{toc}{section}{Приложение А. Программный код основных функций}
 
 
 Функция для определения степени выражения, которое может содержать слагаемое вида $O(x^t)$
@@ -31,18 +31,6 @@ end proc:
 
 
 \bigskip
-Функция для построения продолжения многочлена
-\begin{lstlisting}[basicstyle=\scriptsize]
-prolong := proc(p :: polynom, coef, degree :: integer) :: polynom;
-    local q;
-    q := p + coef * x ^ degree;
-    
-    return q;
-end proc:
-\end{lstlisting}
-
-
-\newpage
 Функция для построения матрицы производных вектора в силу системы
 \begin{lstlisting}[basicstyle=\scriptsize]
 CV_dv := proc(A, v, m)
@@ -72,7 +60,19 @@ end proc:
 \end{lstlisting}
 
 
-\bigskip
+\newpage
+
+Функция для построения продолжения многочлена
+\begin{lstlisting}[basicstyle=\scriptsize]
+prolong := proc(p :: polynom, coef, degree :: integer) :: polynom;
+    local q;
+    q := p + coef * x ^ degree;
+    return q;
+end proc:
+\end{lstlisting}
+
+
+\medskip
 Процедура, запускающая алгоритм проверки сильной цикличности вектора
 \begin{lstlisting}[basicstyle=\scriptsize]
 is_strong_cyclic := proc(A :: Matrix, v :: list, max_recursion_depth :: integer) :: boolean;
@@ -148,7 +148,6 @@ is_strong_cyclic_process := proc(A :: Matrix, v :: list, steps_left :: integer, 
                         # prolongation was found! => not strong cyclic
                         A_copied[i, j] := A[i, j] +
                             roots[k] * x ^ (degree_matrix_copied[i, j] + 1);
-                        
                         RESULT_MATRIX := A_copied;
                         show("not cyclic!");
                         return false;
